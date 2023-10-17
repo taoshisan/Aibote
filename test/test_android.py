@@ -1,6 +1,6 @@
 import time
 
-from AiBot import AndroidBotMain
+from AiBote import AndroidBotMain
 
 
 class CustomAndroidScript(AndroidBotMain):

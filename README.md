@@ -1,16 +1,16 @@
-## AiBot.py 使用方法说明
+## AiBote.py 使用方法说明
 
-### 下载安装 AiBot.py
+### 下载安装 AiBote.py
 
 ```shell
-pip install AiBot.py
+pip install AiBote.py
 ```
 
 #### 使用 AndroidBot 编写脚本
 
 ```python
 # 1. 导入 AndroidBotMain 类
-from AiBot import AndroidBotMain
+from AiBote import AndroidBotMain
 
 
 # 2. 自定义一个脚本类，继承 AndroidBotMain
@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
 ```python
 # 1. 导入 WinBotMain 类
-from AiBot import WinBotMain
+from AiBote import WinBotMain
 
 
 # 2. 自定义一个脚本类，继承 WinBotMain
@@ -110,7 +110,7 @@ if __name__ == '__main__':
 import time
 
 # 1. 导入 WebBotMain 类
-from AiBot import WebBotMain
+from AiBote import WebBotMain
 
 
 # 2. 自定义一个脚本类，继承 WebBotMain

@@ -1,6 +1,6 @@
 import time
 
-from AiBot import WinBotMain
+from AiBote import WinBotMain
 
 
 class CustomWinScript(WinBotMain):

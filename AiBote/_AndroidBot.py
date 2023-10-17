@@ -7,7 +7,7 @@ import socketserver
 import sys
 import threading
 import time
-from AiBot import WinBotMain
+from AiBote import WinBotMain
 from ast import literal_eval
 from datetime import datetime
 from typing import Optional, Dict, List, Tuple, Union

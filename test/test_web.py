@@ -1,6 +1,6 @@
 import time
 
-from AiBot import WebBotMain
+from AiBote import WebBotMain
 
 
 class CustomWebScript(WebBotMain):
