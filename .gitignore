@@ -6,3 +6,4 @@ Thumbs.db
 __pycache__
 dist
 Aibote.py.egg-info
+build
