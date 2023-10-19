@@ -7,7 +7,7 @@ import socketserver
 import sys
 import threading
 import time
-from AiBote import WinBotMain
+from ._WinBot import WinBotMain
 from ast import literal_eval
 from datetime import datetime
 from typing import Optional, Dict, List, Tuple, Union
@@ -47,6 +47,9 @@ Log_Format = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | " \
              "<cyan>{module}:{line}</cyan> | " \
              "<level>{message}</level>"  # 日志内容
 
+_AndroidId = ''
+_AndroidIds = ''
+_WindowsBot = ''
 
 class Point:
     def __init__(self, x: float, y: float, driver: "AndroidBotMain"):
@@ -127,14 +130,18 @@ class Point2s:
 
 _Point_Tuple = Union[Point, Tuple[float, float]]
 
-_AndroidId = ''
-_AndroidIds = ''
-_WindowsBot = ''
 class CustomWinScript(WinBotMain):
     log_level = "DEBUG"
 
     def script_main(self):
+        global _WindowsBot
         _WindowsBot = self
+
+        while True:
+            time.sleep(60)
+
+def son():
+    CustomWinScript.execute(56668)
 
 class _ThreadingTCPServer(socketserver.ThreadingTCPServer):
     daemon_threads = True
@@ -164,22 +171,18 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
     log_level = "INFO"
     log_size = 10  # MB
 
+    log = logger
+
+    if log_storage:
+        log.add("./runtime.log", level=log_level.upper(), format=Log_Format,
+                rotation=f'{log_size} MB',
+                retention='0 days')
+
     # 基础存储路径
     _base_path = "/storage/emulated/0/Android/data/com.aibot.client/files/"
 
     def __init__(self, request, client_address, server):
         self._lock = threading.Lock()
-        self.log = logger
-
-        if self.log_storage:
-            global Count
-            Count += 1
-            thread_id = threading.current_thread().ident
-            log_path = f"./logs/runtime{Count}_{thread_id}.log"
-            self.log.add(log_path, level=self.log_level.upper(), format=Log_Format,
-                         filter=lambda record: record['thread'].id == thread_id,
-                         rotation=f'{self.log_size} MB',
-                         retention='0 days')
 
         super().__init__(request, client_address, server)
 
@@ -757,7 +760,7 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
 
         return self.__send_data("dispatchGesture", gesture_path_str, duration * 1000) == "true"
 
-    def gestures(self, gestures_path: List[List['duration': float, _Point_Tuple]]) -> bool:
+    def gestures(self, gestures_path: List[dict['duration': float, _Point_Tuple]]) -> bool:
         """
         执行多个手势
 
@@ -1365,6 +1368,33 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
         return True
 
     # #############
+    #   投屏相关   #
+    # #############
+    def get_group_id(self) -> str:
+        """
+        获取投屏组号
+
+        :return:
+        """
+        return self.__send_data("getGroup")
+
+    def get_identifier(self) -> str:
+        """
+        获取投屏编号
+
+        :return:
+        """
+        return self.__send_data("get_identifier")
+
+    def get_title(self) -> str:
+        """
+        获取投屏标题
+
+        :return:
+        """
+        return self.__send_data("getTitle")
+
+    # #############
     #   设备操作   #
     # #############
 
@@ -1394,43 +1424,32 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
         # 超时
         return False
 
-    def app_is_running(self, name: str, wait_time: float = None, interval_time: float = None) -> bool:
+    def app_is_running(self, app_name: str) -> bool:
         """
-        启动 APP
+        判断app是否正在运行(包含前后台)
 
-        :param name: APP名字或者包名
-        :param wait_time: 等待时间，默认取 self.wait_timeout
-        :param interval_time: 轮询间隔时间，默认取 self.interval_timeout
         :return:
         """
-        if wait_time is None:
-            wait_time = self.wait_timeout
+        return self.__send_data("appIsRunnig", app_name) == "true"
 
-        if interval_time is None:
-            interval_time = self.interval_timeout
+    def close_driver(self):
+        """
+        关闭连接
 
-        end_time = time.time() + wait_time
-        while time.time() < end_time:
-            # 失败
-            if self.__send_data("appIsRunnig", name) != "true":
-                time.sleep(interval_time)
-            # 成功
-            else:
-                return True
-        # 超时
-        return False
-    
-    def get_installed_packages(self) -> List[str]:
+        :return:
+        """
+        self.__send_data("closeDriver")
+
+    def get_installed_packages(self) -> list[str]:
         """
         获取已安装app的包名(不包含系统APP)
 
         :return:
         """
-
-        response = self.__send_data("getTnstalledPackages")
-        if response == "null":
+        resp = self.__send_data("getInstalledPackages")
+        if resp == "null" or resp == "":
             return []
-        return response.split("|")
+        return resp.split("|")
 
     def get_device_ip(self) -> str:
         """
@@ -1446,27 +1465,6 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
         :return: Android 设备 ID 字符串
         """
         return self.__send_data("getAndroidId")
-
-    def get_group(self) -> str:
-        """
-        获取投屏组号
-        :return: 投屏组号
-        """
-        return self.__send_data("getGroup")
-    
-    def get_identifier(self) -> str:
-        """
-        获取投屏编号
-        :return: 投屏编号
-        """
-        return self.__send_data("getIdentifier")
-    
-    def get_title(self) -> str:
-        """
-        获取投屏标题
-        :return: 投屏标题
-        """
-        return self.__send_data("getTitle")
 
     def get_window_size(self) -> Dict[str, float]:
         """
@@ -1785,8 +1783,8 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
         return params
 
     def __start_windows_bot(self) -> None:
-
-        CustomWinScript.execute(56668)
+        thr = threading.Thread(target=son)
+        thr.start()
 
     def __init_accessory(self) -> bool:
         """
@@ -1814,27 +1812,30 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
                 tries = 0
             else:
                 tries = tries - 1
-                time.sleep(1000)
-
+                time.sleep(1)
         if not _WindowsBot:
             return False
         
         # 初始化android Accessory，获取手机hid相关的数据。 先调用 AndroidBot.windowsBot.initHid() 后再调用initAccessory() 顺序不能变
-        if not self.__init_accessory():
+        if self.__init_accessory() == False:
             return False
         
         # 先调用 windowsBot.initHid，再调用androidBot.initHid。
         # 初始化完毕再通过windowsBot.getHidData获取交换后的hid相关的数据
-        if not _WindowsBot.init_hid():
+        if _WindowsBot.init_hid() == False:
             return False
         
+        global _AndroidIds
         if not _AndroidIds:
             _AndroidIds = _WindowsBot.get_hid_data()
 
         if not _AndroidIds:
             return False
         
+        
+        
         # 获取AndroidId 用作hid相关函数区分手机设备
+        global _AndroidId
         _AndroidId = self.get_android_id()
         for AndroidId in _AndroidIds:
             if AndroidId == _AndroidId:
@@ -1842,13 +1843,13 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
 
         return False
     
-    def get_rotation_angle(self) -> float:
+    def get_rotation_angle(self) -> int:
         """
         获取手机旋转角度
 
         :return: 手机旋转的角度
         """
-        return float(self.__send_data("getRotationAngle"))
+        return int(self.__send_data("getRotationAngle"))
 
     def hid_press(self, x: float, y: float) -> bool:
         """
@@ -1867,10 +1868,11 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
 
         :param x: 横坐标
         :param y: 纵坐标
+        :param duration: 移动时长,秒(移动时间内脚本需保持运行)
         :return: True或者False
         """
         angle = self.get_rotation_angle()
-        return _WindowsBot.hid_move(_AndroidId, angle, x, y, duration * 1000) == "true"
+        return _WindowsBot.hid_move(_AndroidId, angle, x, y, duration) == "true"
 
     def hid_release(self) -> bool:
         """
@@ -1909,11 +1911,11 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
 
         :param x: 横坐标
         :param y: 纵坐标
-        :param duration: 按下时长,秒
+        :param duration: 按下时长,秒(按下时间内脚本需保持运行)
         :return: True或者False
         """
         angle = self.get_rotation_angle()
-        return _WindowsBot.hid_long_click(_AndroidId, angle, x, y, duration * 1000) == "true"
+        return _WindowsBot.hid_long_click(_AndroidId, angle, x, y, duration) == "true"
     
     def hid_swipe(self, startX: float, startY: float, endX: float, endY: float, duration: float) -> bool:
         """
@@ -1923,28 +1925,28 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
         :param startY: 起始纵坐标
         :param endX: 结束横坐标
         :param endY: 结束纵坐标
-        :param duration: 滑动时长,秒
+        :param duration: 滑动时长,秒(滑动时间内脚本需保持运行)
         :return: True或者False
         """
         angle = self.get_rotation_angle()
-        return _WindowsBot.hid_swipe(_AndroidId, angle, startX, startY, endX, endY, duration * 1000) == "true"
+        return _WindowsBot.hid_swipe(_AndroidId, angle, startX, startY, endX, endY, duration) == "true"
     
     def hid_gesture(self, gesture_path: List[_Point_Tuple], duration: float) -> bool:
         """
         Hid手势
 
         :param gesture_path: 手势路径，由一系列坐标点组成
-        :param duration: 手势执行时长, 单位秒
+        :param duration: 手势执行时长, 单位秒(执行时间内脚本需保持运行)
         :return:
         """
         angle = self.get_rotation_angle()
-        return _WindowsBot.hid_gesture(_AndroidId, angle, gesture_path, duration * 1000) == "true"
+        return _WindowsBot.hid_gesture(_AndroidId, angle, gesture_path, duration) == "true"
     
-    def hid_gestures(self, gestures_path: List[List['duration': float, _Point_Tuple]]) -> bool:
+    def hid_gestures(self, gestures_path: List[dict['duration': float, _Point_Tuple]]) -> bool:
         """
         Hid多个手势
 
-        :param gestures_path: [[duration:number, [x:number, y:number], [x1:number, y1:number]...],[duration, [x1, y1], [x1, y1]...],...]duration:手势执行时长, 单位秒,gesture_path手势路径，由一系列坐标点组成
+        :param gestures_path: [[duration:number, [x:number, y:number], [x1:number, y1:number]...],[duration, [x1, y1], [x1, y1]...],...]duration:手势执行时长, 单位秒,gesture_path手势路径，由一系列坐标点组成，(执行时间内脚本需保持运行)
         :return:
         """
         angle = self.get_rotation_angle()

@@ -16,43 +16,6 @@ from urllib import request, parse
 import json
 import base64
 
-class Point:
-    def __init__(self, x: float, y: float, driver: "WinBotMain"):
-        self.x = x
-        self.y = y
-        self.__driver = driver
-
-    def click(self, offset_x: float = 0, offset_y: float = 0):
-        """
-        点击坐标
-
-        :param offset_x: 坐标 x 轴偏移量
-        :param offset_y: 坐标 y 轴偏移量
-        :return:
-        """
-        return self.__driver.click(self, offset_x=offset_x, offset_y=offset_y)
-
-    def get_points_center(self, other_point: "Point") -> "Point":
-        """
-        获取两个坐标点的中间坐标
-
-        :param other_point: 其他的坐标点
-        :return: Point
-        """
-        return self.__class__(x=self.x + (other_point.x - self.x) / 2, y=self.y + (other_point.y - self.y) / 2,
-                              driver=self.__driver)
-
-    def __getitem__(self, item):
-        if item == 0:
-            return self.x
-        elif item == 1:
-            return self.y
-        else:
-            raise IndexError("list index out of range")
-
-    def __repr__(self):
-        return f"Point(x={self.x}, y={self.y})"
-
 _Point_Tuple = Union[Point, Tuple[float, float]]
 
 class _ThreadingTCPServer(socketserver.ThreadingTCPServer):
@@ -1667,7 +1630,7 @@ class WinBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle", "
             return []
         return response.split("|")
     
-    def hid_press(self, android_id: str, angle: float, x: float, y: float) -> bool:
+    def hid_press(self, android_id: str, angle: int, x: float, y: float) -> bool:
         """
         按下
 
@@ -1679,7 +1642,7 @@ class WinBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle", "
         """
         return self.__send_data("hidPress", android_id, angle, x, y) == "true"
     
-    def hid_move(self, android_id: str, angle: float, x: float, y: float, duration: float) -> bool:
+    def hid_move(self, android_id: str, angle: int, x: float, y: float, duration: float) -> bool:
         """
         移动
 
@@ -1692,7 +1655,7 @@ class WinBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle", "
         """
         return self.__send_data("hidMove", android_id, angle, x, y, duration * 1000) == "true"
     
-    def hid_release(self, android_id: str, angle: float) -> bool:
+    def hid_release(self, android_id: str, angle: int) -> bool:
         """
         释放
 
@@ -1702,7 +1665,7 @@ class WinBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle", "
         """
         return self.__send_data("hidRelease", android_id, angle) == "true"
     
-    def hid_click(self, android_id: str, angle: float, x: float, y: float) -> bool:
+    def hid_click(self, android_id: str, angle: int, x: float, y: float) -> bool:
         """
         单击
 
@@ -1714,7 +1677,7 @@ class WinBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle", "
         """
         return self.__send_data("hidClick", android_id, angle, x, y) == "true"
     
-    def hid_double_click(self, android_id: str, angle: float, x: float, y: float) -> bool:
+    def hid_double_click(self, android_id: str, angle: int, x: float, y: float) -> bool:
         """
         双击
 
@@ -1726,7 +1689,7 @@ class WinBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle", "
         """
         return self.__send_data("hidDoubleClick", android_id, angle, x, y) == "true"
     
-    def hid_long_click(self, android_id: str, angle: float, x: float, y: float, duration: float) -> bool:
+    def hid_long_click(self, android_id: str, angle: int, x: float, y: float, duration: float) -> bool:
         """
         长按
 
@@ -1739,7 +1702,7 @@ class WinBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle", "
         """
         return self.__send_data("hidLongClick", android_id, angle, x, y, duration * 1000) == "true"
     
-    def hid_swipe(self, android_id: str, angle: float, startX: float, startY: float, endX: float, endY: float, duration: float) -> bool:
+    def hid_swipe(self, android_id: str, angle: int, startX: float, startY: float, endX: float, endY: float, duration: float) -> bool:
         """
         滑动坐标
 
@@ -1754,7 +1717,7 @@ class WinBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle", "
         """
         return self.__send_data("hidSwipe", android_id, angle, startX, startY, endX, endY, duration * 1000) == "true"
     
-    def hid_gesture(self, android_id: str, angle: float, gesture_path: List[_Point_Tuple], duration: float) -> bool:
+    def hid_gesture(self, android_id: str, angle: int, gesture_path: List[_Point_Tuple], duration: float) -> bool:
         """
         Hid手势
 
@@ -1772,7 +1735,7 @@ class WinBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle", "
 
         return self.__send_data("hidDispatchGesture", android_id, angle, gesture_path_str, duration * 1000) == "true"
     
-    def hid_gestures(self, android_id: str, angle: float, gestures_path: List[List['duration': float, _Point_Tuple]]) -> bool:
+    def hid_gestures(self, android_id: str, angle: int, gestures_path: List[dict['duration': float, _Point_Tuple]]) -> bool:
         """
         Hid多个手势
 

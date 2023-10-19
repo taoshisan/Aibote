@@ -4,3 +4,5 @@ venv
 Thumbs.db
 .DS_Store
 __pycache__
+dist
+Aibote.py.egg-info
