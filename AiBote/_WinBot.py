@@ -1375,14 +1375,14 @@ class WinBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle", "
     # #############
     #   语音服务   #
     # #############
-    def activate_speech_service(self, activate_key: str) -> bool:
-        """
-        激活 initSpeechService (不支持win7)
+    # def activate_speech_service(self, activate_key: str) -> bool:
+    #     """
+    #     激活 initSpeechService (不支持win7)
 
-        :param activate_key: 激活密钥，联系管理员
-        :return: True或者False
-        """
-        return self.__send_data("activateSpeechService", activate_key) == "true"
+    #     :param activate_key: 激活密钥，联系管理员
+    #     :return: True或者False
+    #     """
+    #     return self.__send_data("activateSpeechService", activate_key) == "true"
 
     def init_speech_service(self, speech_key: str, speech_region: str) -> bool:
         """

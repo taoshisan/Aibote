@@ -12,7 +12,7 @@ install_requires = [
 
 setup_kwargs = {
     'name': 'AiBote.py',
-    'version': '1.3.4',
+    'version': '1.3.5',
     'description': 'pywinauto webdriver selenium appium Playwright UIAutomation Automation',
     'long_description': 'pywinauto webdriver selenium appium Playwright UIAutomation Automation',
     'long_description_content_type': 'text/markdown',

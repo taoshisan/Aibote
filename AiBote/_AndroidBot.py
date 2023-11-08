@@ -1597,6 +1597,18 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
             return []
         return response.split("|")
 
+    def make_android_dir(self, android_directory: str) -> bool:
+        """
+        安卓文件是否存在
+
+        :param android_directory: 安卓目录
+        :return:
+        """
+        if not android_directory.startswith("/storage/emulated/0/"):
+            android_directory = "/storage/emulated/0/" + android_directory
+
+        return self.__send_data("makeAndroidDir", android_directory) == "true"
+
     def back(self) -> bool:
         """
         返回
@@ -1620,6 +1632,14 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
         :return:
         """
         return self.__send_data("recents") == "true"
+
+    def power_dialog(self) -> bool:
+        """
+        打开 开/关机 对话框，基于无障碍权限
+
+        :return:
+        """
+        return self.__send_data("powerDialog") == "true"
 
     def open_uri(self, uri: str) -> bool:
         """
@@ -1713,7 +1733,7 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
         :param height:  控件高度，默认 60
         :return:
         """
-        return self.__send_data("createTextView", _id, text, x, y, width, height)
+        return self.__send_data("createTextView", _id, text, x, y, width, height) == "true"
 
     def create_edit_view(self, _id: int, text: str, x: int, y: int, width: int = 400, height: int = 150):
         """
@@ -1727,9 +1747,9 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
         :param height:  控件高度，默认 150
         :return:
         """
-        return self.__send_data("createEditText", _id, text, x, y, width, height)
+        return self.__send_data("createEditText", _id, text, x, y, width, height) == "true"
 
-    def create_check_box(self, _id: int, text: str, x: int, y: int, width: int = 400, height: int = 60):
+    def create_check_box(self, _id: int, text: str, x: int, y: int, width: int = 400, height: int = 60, is_select: bool = False):
         """
         创建复选框控件
 
@@ -1739,9 +1759,25 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
         :param y:  控件在屏幕上y坐标
         :param width:  控件宽度，默认 400
         :param height:  控件高度，默认 60
+        :param is_select:  是否勾选，默认 False
         :return:
         """
-        return self.__send_data("createCheckBox", _id, text, x, y, width, height)
+        return self.__send_data("createCheckBox", _id, text, x, y, width, height, is_select) == "true"
+
+    def create_list_text(self, _id: int, hint_text: str, x: int, y: int, width: int, height: int, list_text: list[str]):
+        """
+        创建ListText控件
+
+        :param _id:  控件ID，不可与其他控件重复
+        :param hint_text:  提示文本
+        :param x:  控件在屏幕上x坐标
+        :param y:  控件在屏幕上y坐标
+        :param width:  控件宽度
+        :param height:  控件高度
+        :param list_text:  列表文本
+        :return:
+        """
+        return self.__send_data("createCheckBox", _id, hint_text, x, y, width, height, list_text) == "true"
 
     def create_web_view(self, _id: int, url: str, x: int = -1, y: int = -1, width: int = -1, height: int = -1) -> bool:
         """
@@ -1964,17 +2000,17 @@ class AndroidBotMain(socketserver.BaseRequestHandler, metaclass=_protect("handle
     # ##########
     #  URL请求 #
     ############
-    def url_request(self, url: str, request_type: str, content_type: str = 'null', post_data: str = 'null') -> str:
+    def url_request(self, url: str, request_type: str, headers: str = 'null', post_data: str = 'null') -> str:
         """
         发送URL请求
 
         :param url: 请求的地址，http:// 或者 https://开头
         :param request_type: 请求类型，GET或者POST
-        :param content_type: 可选参数，用作POST 内容类型
+        :param headers: 可选参数，请求头
         :param post_data: 可选参数，用作POST 提交的数据
         :return: 请求数据内容
         """
-        return self.__send_data("urlRequest", url, request_type, content_type, post_data)
+        return self.__send_data("urlRequest", url, request_type, headers, post_data)
 
     # ##########
     #  验证码  #
